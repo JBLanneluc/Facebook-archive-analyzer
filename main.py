@@ -131,8 +131,8 @@ result = sorted(result)
 result = convert_timestamp_list_to_timestamp_date(result)
 df = normalize_dataframe(result)
 print(df)
-#df.groupby('hour').plot(kind='bar')
-#plt.show()
+df['hour'].plot.hist()
+plt.show()
 
 
 
