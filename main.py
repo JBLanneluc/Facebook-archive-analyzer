@@ -68,6 +68,7 @@ def normalize_dataframe(timestamp_list):
     minute = []
     second = []
     weekday = []
+    month_number = []
 
     for timestamp in timestamp_list:
         date = timestamp.split(" ")[0]
@@ -80,6 +81,7 @@ def normalize_dataframe(timestamp_list):
 
 
         day.append(int(date[0]))
+        month_number.append(int(date[1]))
         month.append(convert_month_number_to_name(int(date[1])))
         year.append(int(date[2]))
         hour.append(int(time[0]))
@@ -87,7 +89,7 @@ def normalize_dataframe(timestamp_list):
         second.append(int(time[2]))
 
 
-    normalized_dataframe = pd.DataFrame({'day':day, 'month':month, 'year':year, 'hour':hour, 'minute':minute, 'second':second, 'weekday':weekday})
+    normalized_dataframe = pd.DataFrame({'day':day, 'month':month, 'year':year, 'hour':hour, 'minute':minute, 'second':second, 'month_number':month_number,'weekday':weekday})
 
     return normalized_dataframe
 
@@ -114,7 +116,19 @@ def convert_weekday_number_to_name(weekday_number):
         print("\nERROR: weekday_number = %s\n"%weekday_number)
         raise KeyError
 
-
+#renvoie un dataframe contenant untiquement les données datées entre les 2 dates d'entrées (données au format "dd/MM/YYYY")
+def select_data_between_dates(begin_date, end_date, data):
+    data_copy = data.copy()
+    begin_tuple = (int(begin_date[6:]),int(begin_date[3:5]),int(begin_date[0:2]))
+    end_tuple = (int(end_date[6:]),int(end_date[3:5]),int(end_date[0:2]))
+    index_todrop = []
+    for index, row in data.iterrows():
+        date_tuple = (row['year'],row['month_number'],row['day'])
+        print(int(index/len(data)*100), "%")
+        if (date_tuple < begin_tuple or date_tuple > end_tuple):
+            index_todrop.append(index)
+    data_copy = data_copy.drop(index_todrop)
+    return data_copy
 
 
 
@@ -131,9 +145,13 @@ result = sorted(result)
 result = convert_timestamp_list_to_timestamp_date(result)
 df = normalize_dataframe(result)
 print(df)
-df['hour'].plot.hist()
+#df['hour'].plot.hist(bins=24, edgecolor='black')
+data_between_dates = select_data_between_dates('01/01/2019', '01/02/2019', df)
+print(data_between_dates)
+data_between_dates['hour'].plot.hist(bins=24, edgecolor='black')
+plt.xlabel('Hour')
+plt.ylabel('number of messages')
 plt.show()
-
 
 
 
