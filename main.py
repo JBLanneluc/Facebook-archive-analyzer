@@ -22,16 +22,18 @@ def sent_messages_timestamp_parser(file_path):
 
     return timestamps_sender_loic
 
+#Renvoit 2 listes pour une discussion precise : celle des messages recus et celle des messages envoyes
 def received_messages_parser(file_path):
     with open(file_path) as json_data:
         data = json.load(json_data)
-
-    messages_received = []
+    messages_received = ""
+    messages_sent = ""
     for k in data["messages"]:
         if (k["sender_name"] != "LoÃ¯c Garnier" and 'content' in k):
-            messages_received.append((k["sender_name"],k["content"]))
-
-    return messages_received
+            messages_received = messages_received + " " + k["content"]
+        if (k["sender_name"] == "LoÃ¯c Garnier" and 'content' in k):
+            messages_sent = messages_sent + " " + k["content"]
+    return [messages_sent, messages_received]
 
 # convertit un timestamp en millisecondes depuis epoch en date lisible au format string
 def convert_timestamp_to_date(timestamp):
@@ -60,15 +62,22 @@ def all_directories_timestamp_messages_parser(dir_path):
             mega_timestamp_list = mega_timestamp_list + sent_messages_timestamp_parser(file)
     return mega_timestamp_list
 
-def all_directories_received_messages_parser(dir_path):
-    mega_messages_list = []
-    for path, dirs, files in os.walk(dir_path):
-        dirs_list = dirs
-        break
-    for dir in dirs_list:
-        for file in message_files_list(dir_path + dir):
-            mega_messages_list = mega_messages_list + received_messages_parser(file)
-    return mega_messages_list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -149,7 +158,7 @@ def convert_weekday_number_to_name(weekday_number):
         print("\nERROR: weekday_number = %s\n"%weekday_number)
         raise KeyError
 
-#renvoie un dataframe contenant untiquement les données datées entre les 2 dates d'entrées (données au format "dd/MM/YYYY")
+#renvoie un dataframe contenant untiquement les donnees datees entre les 2 dates d'entrees (donnees au format "dd/MM/YYYY")
 def select_data_between_dates(begin_date, end_date, data):
     begin_tuple = (int(begin_date[6:]),int(begin_date[3:5]),int(begin_date[0:2]))
     end_tuple = (int(end_date[6:]),int(end_date[3:5]),int(end_date[0:2]))
@@ -268,8 +277,8 @@ def mega_function(data, primary_interval, secondary_interval, global_interval):
     plt.legend(loc="upper right")
 
     plt.xlabel("Jour de la semaine") #
-    plt.ylabel("Pourcentage de messages envoyés")
-    plt.title("Pourcentage de messages envoyés par jour de la semaine selon les années") #
+    plt.ylabel("Pourcentage de messages envoyes")
+    plt.title("Pourcentage de messages envoyes par jour de la semaine selon les annees") #
     plt.tight_layout()
     plt.show()
 
@@ -289,6 +298,8 @@ result = all_directories_timestamp_messages_parser(dir_path)
 result = sorted(result)
 result = convert_timestamp_list_to_timestamp_date(result)
 df = normalize_dataframe(result)
+
+messages_received = all_directories_received_messages_parser(dir_path)
 
 print(get_years(df))
 #df = test_dataframe()
