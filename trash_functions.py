@@ -1,3 +1,113 @@
+from main import *
+
+
+def show_messages_per_interval(data, primary_interval, secondary_interval):
+
+    bins_dictionnary = {"hour": 24, "weekday": 7, "month": 12, "second": 60, "minute": 60} # trouver le nombre d annees et le stocker pour le mettre dans le dico
+    primary_interval = primary_interval.lower()
+    primary_name = primary_interval #.capitalize()
+    primary_number = bins_dictionnary[primary_interval]
+
+    if (primary_interval == "weekday"):
+        data[primary_interval].value_counts().hist(bins=24, edgecolor="black")
+        #fig, ax = plt.subplots()
+        weekday_names = "Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche".split(' ')
+        plt.xticks([0, 0.5 ,1,2,3,4,5], weekday_names)
+        #ax.set_xticklabels(weekday_names)
+        #ax.set_xticks(range(0, len(weekday_names)))
+        #ax.plot()
+    elif (primary_interval == "month"):
+        data[primary_interval].value_counts().hist(bins=24, edgecolor="black")
+        month_names = "Janvier Fevrier Mars Avril Mai Juin Juillet Aout Septembre Octobre Novembre Decembre".split(' ')
+        #ax.set_xticklabels(month_names)
+        #ax.set_xticks(range(0, len(month_names)))
+    else:
+        data[primary_interval].plot.hist(bins=24, edgecolor="black")
+
+    plt.xlabel("Per " + primary_name)
+    plt.ylabel("Average number of messages")
+    plt.show()
+
+
+
+
+def mega_function(data, primary_interval, secondary_interval, global_interval):
+    percentage = False
+    #primary_interval="weekday", secondary_interval="month"
+    if percentage == True:
+        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts()) # fonctionne mais pas la moyenne et legende a changer
+        sum = data.groupby([secondary_interval])[primary_interval].count()
+        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts() / sum * 100)
+        #print(summary)
+    else:
+        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts()) # fonctionne mais pas la moyenne et legende a changer
+        sum = data.groupby([secondary_interval])[primary_interval].count()
+        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts() / sum * 100)
+        #print(summary)
+
+    """
+    if percentage == True:
+        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts()) # fonctionne mais pas la moyenne et legende a changer
+        sum = data.groupby(["year"])["weekday"].count()
+        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts() / sum * 100)
+        print(summary)
+    else:
+        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts()) # fonctionne mais pas la moyenne et legende a changer
+        sum = data.groupby(["year"])["weekday"].count()
+        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts() / sum * 100)
+        print(summary)
+    """
+
+    print("\n\n\n\n\n")
+    print("avant unstack")
+    print(summary)
+    print("\n\n\n\n\n")
+    summary = summary.unstack(level=0)
+    print("apres unstack")
+    print("\n\n\n\n\n")
+    print(summary)
+    print("\n\n\n\n\n")
+
+    print(years)
+
+
+    weekdays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    months = ("Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre")
+    hours = [5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4]
+    dict = {"weekday": weekdays, "month": months, "hour": hours}
+    if primary_interval == "weekday" or primary_interval == "month" or primary_interval == "hour":
+        #print(dict[secondary_interval])
+        #print(dict[primary_interval])
+
+        summary = summary.reindex(index=["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])
+        print("\n\n\n\n\n")
+        print(summary)
+        print("\n\n\n\n\n")
+        print("\n\nerror ?\n\n\n")
+        summary = summary.reindex(columns=("month", "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"))
+        print("\n\n\n\n\n")
+        print(summary)
+        print("\n\n\n\n\n")
+        #summary = summary[dict["month"]]
+        #summary = summary.unstack(level=0)
+
+        #summary = summary.reindex(months, axis=(1))
+
+        #summary = summary.reindex(dict[secondary_interval])
+
+    #print(summary)
+    #summary = summary.reindex(weekdays)
+    #summary.plot(kind='line', subplots=False)
+    summary.plot(kind='bar', subplots=False)
+    plt.legend(loc="upper right")
+
+    plt.xlabel("Jour de la semaine") #
+    plt.ylabel("Pourcentage de messages envoyes")
+    plt.title("Pourcentage de messages envoyes par jour de la semaine selon les annees") #
+    plt.tight_layout()
+    plt.show()
+
+
 def sort_by_year(timestamp_list):
     years_dictionnary = {}
     current_year = int(timestamp_list[0][2])

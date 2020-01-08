@@ -5,40 +5,52 @@ import os
 import json
 import time
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
-
+import seaborn as sns
+sns.set_style("darkgrid")
 
 ## Fonctions
 
-# renvoie la liste des timestamps de tous les messages envoyes par Loic Garnier dans le fichier en input
-def sent_messages_timestamp_parser(file_path):
+#Renvoit 2 listes pour une discussion precise : celle des messages recus et celle des messages envoyes avec l'expéditeur
+def file_parser(file_path):
     with open(file_path) as json_data:
         data = json.load(json_data)
-
-    timestamps_sender_loic = []
-    for k in data["messages"]:
-        if k["sender_name"] == "LoÃ¯c Garnier":
-            timestamps_sender_loic.append(k["timestamp_ms"])
-
-    return timestamps_sender_loic
-
-#Renvoit 2 listes pour une discussion precise : celle des messages recus et celle des messages envoyes
-def received_messages_parser(file_path):
-    with open(file_path) as json_data:
-        data = json.load(json_data)
-    messages_received = ""
-    messages_sent = ""
+    user1 = "LoÃ¯c Garnier"
+    user2 = ""
+    for name in data['participants']:
+        if name['name'] != user1:
+            user2 = name['name']
+    messages_received = []
+    messages_sent = []
     for k in data["messages"]:
         if (k["sender_name"] != "LoÃ¯c Garnier" and 'content' in k):
-            messages_received = messages_received + " " + k["content"]
+            messages_received.append([k['timestamp_ms'],k['content'],k['sender_name'], user1])
         if (k["sender_name"] == "LoÃ¯c Garnier" and 'content' in k):
-            messages_sent = messages_sent + " " + k["content"]
+            messages_sent.append([k['timestamp_ms'],k['content'],k['sender_name'], user2])
     return [messages_sent, messages_received]
 
 # convertit un timestamp en millisecondes depuis epoch en date lisible au format string
 def convert_timestamp_to_date(timestamp):
     return datetime.datetime.fromtimestamp(float(timestamp)/1000).strftime("%d/%m/%Y %H:%M:%S")
 
+# Renvoie la liste des fichiers de discussion à 2 et la liste des fichiers de discussions de groupe (chemin complet des fichiers)
+def group_file_list(dir_path):
+    for path, dirs, files in os.walk(dir_path):
+        dirs_list = dirs
+        break
+    duo_list = []
+    group_list = []
+    for dir in dirs_list:
+        for file in message_files_list(dir_path + dir):
+            with open(file) as json_data:
+                data = json.load(json_data)
+            participants_number = len(data["participants"])
+            if participants_number > 2:
+                group_list.append(file)
+            elif participants_number == 2:
+                duo_list.append(file)
+    return duo_list, group_list
 
 # renvoie la liste des fichiers de messages json dans le dossier en input
 def message_files_list(dir_path):
@@ -48,34 +60,24 @@ def message_files_list(dir_path):
             result.append(f)
     return result
 
-##
+
+def extract_timestamp(messages_list):
+    result = []
+    for message in messages_list:
+        result.append(message[0])
+    return result
 
 
-
+#Renvoie uniquement les discussions à 2, pas les discussions de groupes, sous la forme [[timestamp, content, sender, receiver],...]
 def all_directories_timestamp_messages_parser(dir_path):
-    mega_timestamp_list = []
-    for path, dirs, files in os.walk(dir_path):
-        dirs_list = dirs
-        break
-    for dir in dirs_list:
-        for file in message_files_list(dir_path + dir):
-            mega_timestamp_list = mega_timestamp_list + sent_messages_timestamp_parser(file)
-    return mega_timestamp_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    sent_timestamp_list = []
+    received_timestamp_list = []
+    file_list, _ = group_file_list(dir_path)
+    for file in file_list:
+        file_sent, file_received = file_parser(file)
+        sent_timestamp_list = sent_timestamp_list + file_sent   #Juste une liste des timestamps des messages envoyés
+        received_timestamp_list = received_timestamp_list + file_received #Liste des timestamps des messages reçus et de l'expéditeur : [[timestamp1, expéditeur1], [timestamp2, expéditeur2]]...
+    return sent_timestamp_list, received_timestamp_list
 
 
 
@@ -88,7 +90,9 @@ def convert_timestamp_list_to_timestamp_date(timestamp_list):
 
 
 #timestamp_list doit etre au format humain
-def normalize_dataframe(timestamp_list):
+def normalize_dataframe(messages_list):
+    timestamps = extract_timestamp(messages_list)
+    timestamps_date = convert_timestamp_list_to_timestamp_date(timestamps)
     day = []
     month = []
     year = []
@@ -97,8 +101,17 @@ def normalize_dataframe(timestamp_list):
     second = []
     weekday = []
     month_number = []
+    Date = []
+    sender = []
+    receiver = []
+    #content = []
 
-    for timestamp in timestamp_list:
+    for message in messages_list:
+        sender.append(message[2])
+        receiver.append(message[3])
+        #content.append(message[4]) #à ne mettre que si nécessaire, on verra si on en a besoin
+
+    for timestamp in timestamps_date:
         date = timestamp.split(" ")[0]
         weekday_name = convert_weekday_number_to_name(convert_date_to_weekday_number(date))
         weekday.append(weekday_name)
@@ -106,8 +119,7 @@ def normalize_dataframe(timestamp_list):
         time = timestamp.split(" ")[1]
         time = time.split(":")
 
-
-
+        Date.append(date[2] + "-" + date[1] + "-" + date[0] + " " + time[0] + ":" + time[1] + ":" + time[2])
         day.append(int(date[0]))
         month_number.append(int(date[1]))
         month.append(convert_month_number_to_name(int(date[1])))
@@ -117,8 +129,8 @@ def normalize_dataframe(timestamp_list):
         second.append(int(time[2]))
 
 
-    normalized_dataframe = pd.DataFrame({'day':day, 'month':month, 'year':year, 'hour':hour, 'minute':minute, 'second':second, 'month_number':month_number,'weekday':weekday})
-
+    normalized_dataframe = pd.DataFrame({'day':day, 'month':month, 'year':year, 'hour':hour, 'minute':minute, 'second':second, 'month_number':month_number,'weekday':weekday, 'Date':pd.to_datetime(Date), 'sender':sender, 'receiver':receiver})
+    normalized_dataframe = normalized_dataframe.sort_values(by=['Date'])
     return normalized_dataframe
 
 
@@ -158,6 +170,8 @@ def convert_weekday_number_to_name(weekday_number):
         print("\nERROR: weekday_number = %s\n"%weekday_number)
         raise KeyError
 
+
+
 #renvoie un dataframe contenant untiquement les donnees datees entre les 2 dates d'entrees (donnees au format "dd/MM/YYYY")
 def select_data_between_dates(begin_date, end_date, data):
     begin_tuple = (int(begin_date[6:]),int(begin_date[3:5]),int(begin_date[0:2]))
@@ -176,145 +190,184 @@ def select_data_between_dates(begin_date, end_date, data):
 
 
 
-
-def show_messages_per_interval(data, primary_interval, secondary_interval):
-
-    bins_dictionnary = {"hour": 24, "weekday": 7, "month": 12, "second": 60, "minute": 60} # trouver le nombre d annees et le stocker pour le mettre dans le dico
-    primary_interval = primary_interval.lower()
-    primary_name = primary_interval #.capitalize()
-    primary_number = bins_dictionnary[primary_interval]
-
-    if (primary_interval == "weekday"):
-        data[primary_interval].value_counts().hist(bins=24, edgecolor="black")
-        #fig, ax = plt.subplots()
-        weekday_names = "Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche".split(' ')
-        plt.xticks([0, 0.5 ,1,2,3,4,5], weekday_names)
-        #ax.set_xticklabels(weekday_names)
-        #ax.set_xticks(range(0, len(weekday_names)))
-        #ax.plot()
-    elif (primary_interval == "month"):
-        data[primary_interval].value_counts().hist(bins=24, edgecolor="black")
-        month_names = "Janvier Fevrier Mars Avril Mai Juin Juillet Aout Septembre Octobre Novembre Decembre".split(' ')
-        #ax.set_xticklabels(month_names)
-        #ax.set_xticks(range(0, len(month_names)))
-    else:
-        data[primary_interval].plot.hist(bins=24, edgecolor="black")
-
-    plt.xlabel("Per " + primary_name)
-    plt.ylabel("Average number of messages")
-    plt.show()
-
-
-
-def mega_function(data, primary_interval, secondary_interval, global_interval):
-    percentage = False
-    #primary_interval="weekday", secondary_interval="month"
-    if percentage == True:
-        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts()) # fonctionne mais pas la moyenne et legende a changer
-        sum = data.groupby([secondary_interval])[primary_interval].count()
-        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts() / sum * 100)
-        #print(summary)
-    else:
-        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts()) # fonctionne mais pas la moyenne et legende a changer
-        sum = data.groupby([secondary_interval])[primary_interval].count()
-        summary = pd.DataFrame(data.groupby([secondary_interval])[primary_interval].value_counts() / sum * 100)
-        #print(summary)
-
-    """
-    if percentage == True:
-        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts()) # fonctionne mais pas la moyenne et legende a changer
-        sum = data.groupby(["year"])["weekday"].count()
-        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts() / sum * 100)
-        print(summary)
-    else:
-        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts()) # fonctionne mais pas la moyenne et legende a changer
-        sum = data.groupby(["year"])["weekday"].count()
-        summary = pd.DataFrame(data.groupby(["year"])["weekday"].value_counts() / sum * 100)
-        print(summary)
-    """
-
-    print("\n\n\n\n\n")
-    print("avant unstack")
-    print(summary)
-    print("\n\n\n\n\n")
-    summary = summary.unstack(level=0)
-    print("apres unstack")
-    print("\n\n\n\n\n")
-    print(summary)
-    print("\n\n\n\n\n")
-
-    print(years)
-
-
-    weekdays = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-    months = ("Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre")
-    hours = [5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4]
-    dict = {"weekday": weekdays, "month": months, "hour": hours}
-    if primary_interval == "weekday" or primary_interval == "month" or primary_interval == "hour":
-        #print(dict[secondary_interval])
-        #print(dict[primary_interval])
-
-        summary = summary.reindex(index=["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])
-        print("\n\n\n\n\n")
-        print(summary)
-        print("\n\n\n\n\n")
-        print("\n\nerror ?\n\n\n")
-        summary = summary.reindex(columns=("month", "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"))
-        print("\n\n\n\n\n")
-        print(summary)
-        print("\n\n\n\n\n")
-        #summary = summary[dict["month"]]
-        #summary = summary.unstack(level=0)
-
-        #summary = summary.reindex(months, axis=(1))
-
-        #summary = summary.reindex(dict[secondary_interval])
-
-    #print(summary)
-    #summary = summary.reindex(weekdays)
-    #summary.plot(kind='line', subplots=False)
-    summary.plot(kind='bar', subplots=False)
-    plt.legend(loc="upper right")
-
-    plt.xlabel("Jour de la semaine") #
-    plt.ylabel("Pourcentage de messages envoyes")
-    plt.title("Pourcentage de messages envoyes par jour de la semaine selon les annees") #
-    plt.tight_layout()
-    plt.show()
-
-
-
 def get_years(normalized_dataframe):
     to_flatten = pd.DataFrame(normalized_dataframe.year.unique()).values.tolist()
     years = []
     for elem in to_flatten:
         years.append(elem[0])
+    years.sort()
     return years
 
+def get_months(normalized_dataframe):
+    to_flatten = pd.DataFrame(normalized_dataframe.Date.dt.month.unique()).values.tolist()
+    months = []
+    for elem in to_flatten:
+        months.append(elem[0])
+    months.sort()
+    return months
 
-dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
-#dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
-result = all_directories_timestamp_messages_parser(dir_path)
-result = sorted(result)
-result = convert_timestamp_list_to_timestamp_date(result)
-df = normalize_dataframe(result)
-
-messages_received = all_directories_received_messages_parser(dir_path)
-
-print(get_years(df))
-#df = test_dataframe()
-#print(df)
-#print(df.dtypes)
-#show_messages_per_interval(df, primary_interval="weekday", secondary_interval="")
-#mega_function(data=df, primary_interval="weekday", secondary_interval="month", global_interval="")
-
-#df['hour'].plot.hist(bins=24, edgecolor='black')
-#data_between_dates = select_data_between_dates('01/01/2019', '01/02/2019', df)
+#Renvoie un dictionnaire des n utilisateurs qui nous ont envoyé le plus de messages et du nombre de messages reçus
+def palmares(df_sent, df_received, n):
+    palmares_sent = df_sent['receiver'].value_counts()
+    palmares_received = df_received['sender'].value_counts()
+    palmares = palmares_received.add(palmares_sent, fill_value=0).sort_values().nlargest(n).astype('int32').reset_index()
+    palmares.columns = ['Nom', 'Nombre de messages']
+    print("Palmares des", n, "utilisateurs avec lesquels vous avez échangé le plus de messages :\n", palmares)
+    return palmares
 
 
+#Heures par jour de la semaine
+def display_graph_pyplot1(df):
+    fig, ax = plt.subplots(ncols=7, figsize=(30,10))
+    plt.subplots_adjust(wspace=0.05)  #Remove some whitespace between subplots
+
+    for idx, gp in df.groupby(df.Date.dt.dayofweek):
+        ax[idx].set_title(gp.weekday.iloc[0])  #Set title to the weekday
+
+        (gp.groupby(gp.Date.dt.hour).size().rename_axis('').to_frame('')
+            .reindex(np.arange(0,24,1)).fillna(0)
+            .plot(kind='bar', ax=ax[idx], rot=0, ec='k', legend=False))
+
+        # Ticks and labels on leftmost only
+        if idx == 0:
+            _ = ax[idx].set_ylabel('Nombre de messages', fontsize=15)
+
+        _ = ax[idx].tick_params(axis='x', which='major', labelsize=8,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+        _ = ax[idx].tick_params(axis='y', which='major', labelsize=11,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+        ax[idx].set_xticklabels([0,'',2,'',4,'',6,'',8,'',10,'',12,'',14,'',16,'',18,'',20,'',22,''])
+
+    # Consistent bounds between subplots.
+    lb, ub = list(zip(*[axis.get_ylim() for axis in ax]))
+    for axis in ax:
+        axis.set_ylim(min(lb), max(ub))
+    fig.text(0.5, 0.02,  'Mois', ha='center', fontsize=15)
+    plt.show()
+
+
+#Mois par an
+def display_graph_pyplot2(df):
+    years=get_years(df)
+    col_number = years[-1] - years[0] + 1
+    fig, ax = plt.subplots(ncols=col_number, figsize=(30,10))
+    if col_number == 1:
+        ax = [ax]
+
+    plt.subplots_adjust(wspace=0.05)  #Remove some whitespace between subplots
+
+    for year, gp in df.groupby(df.year):
+        idx = year - years[0]
+        ax[idx].set_title(gp.year.iloc[0])  #Set title to the weekday
+
+        (gp.groupby(gp.Date.dt.month).size().rename_axis('').to_frame('')
+            .reindex(np.arange(1,13,1)).fillna(0)
+            .plot(kind='bar', ax=ax[idx], rot=0, ec='k', legend=False))
+
+        # Ticks and labels on leftmost only
+        if idx == 0:
+            _ = ax[idx].set_ylabel('Nombre de messages', fontsize=15)
+
+        _ = ax[idx].tick_params(axis='x', which='major', labelsize=7,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+        _ = ax[idx].tick_params(axis='y', which='major', labelsize=11,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+    # Consistent bounds between subplots.
+    lb, ub = list(zip(*[axis.get_ylim() for axis in ax]))
+    for axis in ax:
+        axis.set_ylim(min(lb), max(ub))
+
+    fig.text(0.5, 0.02, 'Mois', ha='center', fontsize=15)
+    plt.show()
+
+
+#Jour de la semaine par an
+def display_graph_pyplot3(df):
+    years=get_years(df)
+    col_number = years[-1] - years[0] + 1
+    fig, ax = plt.subplots(ncols=col_number, figsize=(30,10))
+    if col_number == 1:
+        ax = [ax]
+    plt.subplots_adjust(wspace=0.05)  #Remove some whitespace between subplots
+
+    for year, gp in df.groupby(df.year):
+        idx = year - years[0]
+        ax[idx].set_title(gp.year.iloc[0])  #Set title to the weekday
+
+        (gp.groupby(gp.Date.dt.dayofweek + 1).size().rename_axis('').to_frame('')
+            .reindex(np.arange(1,8,1)).fillna(0)
+            .plot(kind='bar', ax=ax[idx], rot=0, ec='k', legend=False))
+
+        # Ticks and labels on leftmost only
+        if idx == 0:
+            _ = ax[idx].set_ylabel('Nombre de messages', fontsize=15)
+
+        _ = ax[idx].tick_params(axis='both', which='major', labelsize=9,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+    # Consistent bounds between subplots.
+    lb, ub = list(zip(*[axis.get_ylim() for axis in ax]))
+    for axis in ax:
+        axis.set_ylim(min(lb), max(ub))
+
+    fig.text(0.5, 0.02, 'Jour de la semaine', ha='center', fontsize=15)
+    plt.show()
+
+#Jour de la semaine par mois
+def display_graph_pyplot4(df):
+    months=get_months(df)
+    col_number = months[-1] - months[0] + 1
+    fig, ax = plt.subplots(ncols=col_number, figsize=(30,10))
+    if col_number == 1:
+        ax = [ax]
+    plt.subplots_adjust(wspace=0.05)  #Remove some whitespace between subplots
+
+    for idx, gp in df.groupby(df.Date.dt.month):
+        idx = idx - months[0]
+        ax[idx].set_title(gp.month.iloc[0])  #Set title to the month
+
+        (gp.groupby(gp.Date.dt.dayofweek + 1).size().rename_axis('').to_frame('')
+            .reindex(np.arange(1,8,1)).fillna(0)
+            .plot(kind='bar', ax=ax[idx], rot=0, ec='k', legend=False))
+
+        # Ticks and labels on leftmost only
+        if idx == 0:
+            _ = ax[idx].set_ylabel('Nombre de messages', fontsize=15)
+
+        _ = ax[idx].tick_params(axis='both', which='major', labelsize=9,
+                                labelleft=(idx == 0), left=(idx == 0))
+
+    # Consistent bounds between subplots.
+    lb, ub = list(zip(*[axis.get_ylim() for axis in ax]))
+    for axis in ax:
+        axis.set_ylim(min(lb), max(ub))
+
+    fig.text(0.5, 0.02, 'Jour de la semaine', ha='center', fontsize=15)
+    plt.show()
 
 
 
+#dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
+messages_sent, messages_received = all_directories_timestamp_messages_parser(dir_path)
 
 
-##
+df_sent = normalize_dataframe(messages_sent)
+df_received = normalize_dataframe(messages_received)
+"""
+display_graph_pyplot1(df)
+display_graph_pyplot2(df)
+display_graph_pyplot3(df)
+display_graph_pyplot4(df)
+"""
+#print(df_sent)
+#print(df_received)
+palmares(df_sent, df_received, 20)
+
+
+#df = select_data_between_dates('01/01/2015', '31/12/2019', df)
+#display_graph_pyplot(df)
