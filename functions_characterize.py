@@ -1,5 +1,5 @@
 
-def extract_and_characterize(clean_text):
+def extract_characterizing_categories(clean_text):
 
     dict_lists = {
         "use_of_tutoiement_list": use_of_tutoiement_list,
@@ -29,32 +29,37 @@ def extract_and_characterize(clean_text):
     modifiable_text = clean_text
     for key in dict_lists:
         #print("family_member_list_opposite")
-        dict_results[key] = 0
-        if key + "_opposite" in dict_opposite_lists:
-            key_opposite = key + "_opposite"
+        #print("\n\n\n\n")
+        #print(key)
+        #print("\n")
+
+        key_opposite = key + "_opposite"
+        modifiable_text_after_opposite = modifiable_text
+        if key_opposite in dict_opposite_lists:
             dict_results[key_opposite] = 0
             for word in dict_opposite_lists[key_opposite]:
                 while word in modifiable_text:
+                    modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
                     if word in family_member_list:
                         index = modifiable_text.find(word)
-                        print(modifiable_text[index-10:index+10])
-                        print(word in family_member_list_opposite)
-                        modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
-                        if word in dict_opposite_lists[key_opposite]:
-                            dict_results[key_opposite] += 1
-                            #print("+1")
-            modifiable_text = clean_text
+                        #print(modifiable_text[index-10:index+10]) #### important
+                    if word in dict_opposite_lists[key_opposite]:
+                        dict_results[key_opposite] += 1
+                        #print("+1")
+        modifiable_text = modifiable_text_after_opposite
 
+        dict_results[key] = 0
         for word in dict_lists[key]:
             while word in modifiable_text:
+                modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
                 if word in family_member_list:
+                    #print("\n")
+                    #print(key)
                     index = modifiable_text.find(word)
-                    print(modifiable_text[index-10:index+10])
-                    print(word in family_member_list_opposite)
-                    modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
-                    if word in dict_lists[key]:
-                        dict_results[key] += 1
-                        #print("+1")
+                    #print(modifiable_text[index-10:index+10])
+                if word in dict_lists[key]:
+                    dict_results[key] += 1
+                    #print("+1")
 
 
 
@@ -65,14 +70,124 @@ def extract_and_characterize(clean_text):
     et on enlève les occurrences de la liste family_member_list_opposite
     """
     for key in dict_lists:
-        if key + "_opposite" in dict_lists:
-            dict_results[key] -= dict_results[key + "_opposite"]
+        key_opposite = key + "_opposite"
+        if key_opposite in dict_opposite_lists:
+            #print(key_opposite)
+            #print(dict_results[key])
+            #print(dict_results[key_opposite])
+            dict_results[key] -= dict_results[key_opposite]
             dict_results[key] = 0 if dict_results[key] < 0 else dict_results[key]
-            #del dict_results[key + "_opposite"]
+            #print(dict_results[key])
+            del dict_results[key + "_opposite"]
 
     return dict_results
 
 
+def characterize_with_weights(dict_results):
+    coefs = {
+    "use_of_tutoiement_list": 0.5,
+    "informal_speech_list": 0.6,
+
+    "smiley_faces_list": 1,
+    "sms_language_list": 1,
+    "vulgar_speech_list": 1,
+
+    "friends_list": 0.7,
+    "calls_together_list": 1,
+    "plans_together_list": 2,
+    "empathy_words_list": 2,
+    "deep_stuff_list": 2,
+    "talking_late_list": 2,
+    "love_and_affection_list": 10
+    }
+
+    #degree_of_friendship = 100
+    total_count = 0
+    for key in coefs:
+        total_count += dict_results[key]
+    print ("total_count = %s"%total_count)
+
+    dict_percentages = {}
+    for key in coefs:
+        percentage = float("%.2f"%(dict_results[key] * 100 / total_count))
+        dict_percentages[key] = percentage
+        print ("%s = %s"%(key, percentage))
+
+
+
+    """
+    if dict_results["use_of_tutoiement_list"] <= 100 and dict_results["informal_speech_list"] <= 50: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 0.5
+
+    if dict_results["smiley_faces_list"] <= 100 and dict_results["informal_speech_list"] <= 50: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 0.5
+    """
+
+
+
+    degree_of_friendship = 0
+
+    for key in coefs:
+        degree_of_friendship += dict_results[key] * coefs[key] * 100 / total_count
+
+
+
+    if dict_percentages["love_and_affection_list"] >= 1.2: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 1.2
+    elif dict_percentages["love_and_affection_list"] >= 0.8: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 1.1
+
+    if dict_percentages["love_and_affection_list"] <= 0.2: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 0.6
+    elif dict_percentages["love_and_affection_list"] <= 0.4: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 0.7
+    elif dict_percentages["love_and_affection_list"] <= 0.6: # caracteriser avec le nb total de messages envoyés / recus
+        degree_of_friendship = degree_of_friendship * 0.8
+
+    """
+    number_of_messages = 100 # mettre la fonction qui le recupere
+    if number_of_messages <= 200:
+        degree_of_friendship = degree_of_friendship * 0.5
+    """
+
+    #en attendant le nb total de messages
+    if total_count <= 200:
+        degree_of_friendship = degree_of_friendship * 0.5
+    if total_count <= 300:
+        degree_of_friendship = degree_of_friendship * 0.6
+    if total_count <= 400:
+        degree_of_friendship = degree_of_friendship * 0.7
+    if total_count <= 500:
+        degree_of_friendship = degree_of_friendship * 0.8
+    if total_count <= 600:
+        degree_of_friendship = degree_of_friendship * 0.9
+
+    # regarder la date du dernier message aussi !
+    # regarder le nb de gens dans les mêmes groupes
+
+    #degree_of_friendship = degree_of_friendship * 0.95
+    degree_of_friendship = 98 if degree_of_friendship >= 98 else degree_of_friendship
+    degree_of_friendship = round(degree_of_friendship)
+
+    """
+    use_of_tutoiement_list
+    informal_speech_list
+
+    smiley_faces_list
+    sms_language_list
+
+    friends_list
+    vulgar_speech_list
+    calls_together_list
+    plans_together_list
+    empathy_words_list
+    deep_stuff_list
+    talking_late_list
+    love_and_affection_list
+    """
+
+    print("\n\nEstimated probability of friendship = %s%%"%degree_of_friendship)
+    return degree_of_friendship
 
 
 
@@ -191,11 +306,9 @@ student_list = [
 global use_of_tutoiement_list
 use_of_tutoiement_list = [
 "t'es",
-"te",
 "toi",
 "tu",
-"ton",
-"ta"
+"ton"
 ]
 
 #2
