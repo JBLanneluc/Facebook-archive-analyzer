@@ -19,8 +19,9 @@ def extract_and_characterize(clean_text):
         "vegan_list": vegan_list,
         "in_class_together_list": in_class_together_list,
         "family_member_list": family_member_list,
-        "student_list": student_list,
-
+        "student_list": student_list
+    }
+    dict_opposite_lists = {
         "family_member_list_opposite": family_member_list_opposite,
         "flatmates_list_opposite": flatmates_list_opposite
     }
@@ -29,16 +30,33 @@ def extract_and_characterize(clean_text):
     for key in dict_lists:
         #print("family_member_list_opposite")
         dict_results[key] = 0
+        if key + "_opposite" in dict_opposite_lists:
+            key_opposite = key + "_opposite"
+            dict_results[key_opposite] = 0
+            for word in dict_opposite_lists[key_opposite]:
+                while word in modifiable_text:
+                    if word in family_member_list:
+                        index = modifiable_text.find(word)
+                        print(modifiable_text[index-10:index+10])
+                        print(word in family_member_list_opposite)
+                        modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
+                        if word in dict_opposite_lists[key_opposite]:
+                            dict_results[key_opposite] += 1
+                            #print("+1")
+            modifiable_text = clean_text
+
         for word in dict_lists[key]:
             while word in modifiable_text:
                 if word in family_member_list:
                     index = modifiable_text.find(word)
                     print(modifiable_text[index-10:index+10])
                     print(word in family_member_list_opposite)
-                modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
-                if word in dict_lists[key]:
-                    dict_results[key] += 1
-                    #print("+1")
+                    modifiable_text = modifiable_text.replace(word, " ", 1) #si je les enleve ca fait de la merde
+                    if word in dict_lists[key]:
+                        dict_results[key] += 1
+                        #print("+1")
+
+
 
 
     """
@@ -121,29 +139,35 @@ in_class_together_list = [
 
 global family_member_list
 family_member_list = [
-"papi ",
-"mamie ",
-"maman ",
-"papa "
+"papi",
+"mamie",
+"maman",
+"papa"
 ]
 
 global family_member_list_opposite
 family_member_list_opposite = [
+"papie",
+"papil"
 "ma maman",
 "mon papa",
 "ta maman",
 "ton papa",
-"ta mamie",
+"sa maman",
+"son papa",
+
 "ma mamie",
-"ton papi",
 "mon papi",
-"papie",
-"papil"
+"ta mamie",
+"ton papi",
+"sa mamie",
+"son papi",
+
 "un papi",
 "une mamie",
 "des papis",
 "des mamies",
-"papillons"
+#"papillons"
 ]
 
 global student_list
