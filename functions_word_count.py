@@ -83,7 +83,7 @@ def phone_number_extractor(message, https):
                     print("len = %s"%len(message))
 
 
-                if len(nb) == 10 and nb[0] != "+" and nb[1] != "0":
+                if len(nb) == 10 and nb[0] == "0" and nb[1] != "0":
                     numbers.append(nb)
                     break
                 elif len(nb) == 12 and nb[0] == "+" and nb[1] != "0":
@@ -403,6 +403,9 @@ def clean_irrelevant_words(words_list): # marche pas bien parce que nettoie dans
     "d'être",
     "l'air",
     "semaine",
+    "tard",
+    "exactement",
+    "petite",
     "passant",
     "euros",
     "euro",
@@ -682,7 +685,7 @@ def received_messages_parser(file_path):
     #with io.open(file_path, 'r', encoding='utf-8-sig') as json_file:
     #    data = json.load(json_file)
 
-    data = json.load(codecs.open(file_path, 'r', 'utf-8-sig'))
+    #data = json.load(codecs.open(file_path, 'r', 'utf-8-sig'))
 
     messages_received = ""
     messages_sent = ""

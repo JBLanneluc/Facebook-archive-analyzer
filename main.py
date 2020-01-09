@@ -36,9 +36,11 @@ def convert_timestamp_to_date(timestamp):
 
 # Renvoie la liste des fichiers de discussion à 2 et la liste des fichiers de discussions de groupe (chemin complet des fichiers)
 def group_file_list(dir_path):
+    dirs_list = []
     for path, dirs, files in os.walk(dir_path):
         dirs_list = dirs
         break
+    dir_dictionary = {}
     duo_list = []
     group_list = []
     for dir in dirs_list:
@@ -50,7 +52,10 @@ def group_file_list(dir_path):
                 group_list.append(file)
             elif participants_number == 2:
                 duo_list.append(file)
-    return duo_list, group_list
+                name = data["participants"][0]["name"]
+                dir_dictionary[name] = dir
+    return duo_list, group_list, dir_dictionary
+
 
 # renvoie la liste des fichiers de messages json dans le dossier en input
 def message_files_list(dir_path):
@@ -72,7 +77,7 @@ def extract_timestamp(messages_list):
 def all_directories_timestamp_messages_parser(dir_path):
     sent_timestamp_list = []
     received_timestamp_list = []
-    file_list, _ = group_file_list(dir_path)
+    file_list, _, _ = group_file_list(dir_path)
     for file in file_list:
         file_sent, file_received = file_parser(file)
         sent_timestamp_list = sent_timestamp_list + file_sent   #Juste une liste des timestamps des messages envoyés
@@ -107,8 +112,8 @@ def normalize_dataframe(messages_list):
     #content = []
 
     for message in messages_list:
-        sender.append(message[2])
-        receiver.append(message[3])
+        sender.append(message[2].encode('latin1').decode('utf-8-sig'))
+        receiver.append(message[3].encode('latin1').decode('utf-8-sig'))
         #content.append(message[4]) #à ne mettre que si nécessaire, on verra si on en a besoin
 
     for timestamp in timestamps_date:
@@ -351,8 +356,8 @@ def display_graph_pyplot4(df):
 
 
 
-#dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
-dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
+dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+#dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
 messages_sent, messages_received = all_directories_timestamp_messages_parser(dir_path)
 
 
@@ -366,7 +371,8 @@ display_graph_pyplot4(df)
 """
 #print(df_sent)
 #print(df_received)
-palmares(df_sent, df_received, 20)
+
+#palmares(df_sent, df_received, 20)
 
 
 #df = select_data_between_dates('01/01/2015', '31/12/2019', df)

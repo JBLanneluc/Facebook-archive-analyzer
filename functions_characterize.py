@@ -1,3 +1,5 @@
+import json
+from main import *
 
 def extract_characterizing_categories(clean_text):
 
@@ -8,8 +10,10 @@ def extract_characterizing_categories(clean_text):
         "sms_language_list": sms_language_list,
         "friends_list": friends_list,
         "vulgar_speech_list": vulgar_speech_list,
+
         "calls_together_list": calls_together_list,
         "plans_together_list": plans_together_list,
+
         "empathy_words_list": empathy_words_list,
         "deep_stuff_list": deep_stuff_list,
         "talking_late_list": talking_late_list,
@@ -35,6 +39,7 @@ def extract_characterizing_categories(clean_text):
 
         key_opposite = key + "_opposite"
         modifiable_text_after_opposite = modifiable_text
+        modifiable_text_after_tutoiement = modifiable_text
         if key_opposite in dict_opposite_lists:
             dict_results[key_opposite] = 0
             for word in dict_opposite_lists[key_opposite]:
@@ -47,6 +52,7 @@ def extract_characterizing_categories(clean_text):
                         dict_results[key_opposite] += 1
                         #print("+1")
         modifiable_text = modifiable_text_after_opposite
+
 
         dict_results[key] = 0
         for word in dict_lists[key]:
@@ -61,14 +67,9 @@ def extract_characterizing_categories(clean_text):
                     dict_results[key] += 1
                     #print("+1")
 
+        if key == "use_of_tutoiement_list":
+            modifiable_text = modifiable_text_after_tutoiement
 
-
-
-    """
-    voir si on peut pas compter en mode enlever les occurrences des mots qui correspondraient pas, genre ici family_member :
-    une liste papi mamie
-    et on enlève les occurrences de la liste family_member_list_opposite
-    """
     for key in dict_lists:
         key_opposite = key + "_opposite"
         if key_opposite in dict_opposite_lists:
@@ -81,6 +82,12 @@ def extract_characterizing_categories(clean_text):
             del dict_results[key + "_opposite"]
 
     return dict_results
+
+
+
+
+
+
 
 
 def characterize_with_weights(dict_results):
@@ -166,7 +173,7 @@ def characterize_with_weights(dict_results):
     # regarder le nb de gens dans les mêmes groupes
 
     #degree_of_friendship = degree_of_friendship * 0.95
-    degree_of_friendship = 98 if degree_of_friendship >= 98 else degree_of_friendship
+    degree_of_friendship = 99 if degree_of_friendship >= 99 else degree_of_friendship
     degree_of_friendship = round(degree_of_friendship)
 
     """
@@ -188,6 +195,181 @@ def characterize_with_weights(dict_results):
 
     print("\n\nEstimated probability of friendship = %s%%"%degree_of_friendship)
     return degree_of_friendship
+
+
+
+
+
+
+
+
+
+def palmares_of_people_in_groups_with_you(inbox_path):
+    group_conversations_file_list = group_file_list(inbox_path)[1]
+    #print(group_conversations_file_list)
+    people_in_groups_with_you = {}
+    #participants = []
+    nb_of_groups = len(group_conversations_file_list)
+    for group_conversation in group_conversations_file_list:
+        with open(group_conversation) as json_data:
+            participants = []
+            data = json.load(json_data)
+            #print(data["participants"])
+
+            for key in data["participants"]:
+                person_name = key["name"].encode('latin1').decode('utf-8-sig')
+
+                if person_name in people_in_groups_with_you:
+                    people_in_groups_with_you[person_name] += 1
+                else:
+                    people_in_groups_with_you[person_name] = 1
+
+                #participants.append(key["name"].encode('latin1').decode('utf-8-sig'))
+
+    if "Utilisateur de Facebook" in people_in_groups_with_you:
+        del people_in_groups_with_you["Utilisateur de Facebook"]
+    if "Loïc Garnier" in people_in_groups_with_you:
+        del people_in_groups_with_you["Loïc Garnier"]
+
+    for key, value in sorted(people_in_groups_with_you.items(), key=lambda x: x[1], reverse=True):
+        #print(key)
+        #if key[0] == "C":# and key[-1] == "y":
+        #    print(key)
+        if value >= 0:
+            #print("%s\t%s" % (value, key))
+            pass
+
+    return [people_in_groups_with_you, nb_of_groups]
+
+
+
+def get_total_number_of_messages(df_sent, df_received, n=-1):
+    palmares_sent = df_sent['receiver'].value_counts()
+    palmares_received = df_received['sender'].value_counts()
+    if n == -1:
+        palmares = palmares_received.add(palmares_sent, fill_value=0).sort_values().astype('int32')
+        #print([name.encode('latin1').decode('utf-8-sig') for name in palmares.index.values.tolist()])
+
+        #palmares = palmares.reindex([name.encode('latin1').decode('utf-8-sig') for name in palmares.index.values.tolist()])
+
+    elif n >= 0:
+        palmares = palmares_received.add(palmares_sent, fill_value=0).sort_values().nlargest(n).astype('int32').reset_index()
+        palmares.columns = ['Nom', 'Nombre de messages']
+        #palmares["Nom"] = palmares["Nom"].tolist().encode('latin1').decode('utf-8-sig')
+        print("Palmares des", n, "utilisateurs avec lesquels vous avez échangé le plus de messages :\n", palmares)
+    else:
+        print("Erreur, mauvaise valeur entrée")
+        return
+    return palmares
+
+
+
+
+def characterize_with_percentages_for_each_category(dict_results, person_name):
+    #person_name = "Téo Frossard" ###
+    #person_name_dir_version = ""
+    #total_nb_of_messages = get_total_number_of_messages(df_sent, df_received)[person_name]
+    total_nb_of_messages = get_total_number_of_messages(df_sent, df_received)[person_name]
+    #print(df_sent)
+    #print(df_received)
+
+    inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+    groups = palmares_of_people_in_groups_with_you(inbox_path)
+    if person_name in groups[0]:
+        dict_results["groups_together"] = groups[0][person_name] / groups[1] * 100    #gerer qq chose avec le pourcentage de groupes ds lequel t'es et le nb de la personne
+    else:
+        dict_results["groups_together"] = 0
+    #print(dict_results["groups_together"])
+    result_percentages = {}
+    coefs = {
+        "talking_late_list": 1,
+        "student_list": 1,
+
+
+        # informal
+        "use_of_tutoiement_list": 1/15,
+        "informal_speech_list": 1/8,
+        "smiley_faces_list": 1/2,
+        "sms_language_list": 1/2,
+        "vulgar_speech_list": 1/3,
+        "friends_list": 1/1.5,
+
+
+        # in_class_together
+        "in_class_together_list": 120,
+
+
+        # flatmates
+        "flatmates_list": 15,
+
+
+        # activities_together
+        "groups_together": 2,
+        "plans_together_list": 3,
+        "calls_together_list": 1,
+
+
+        # love_and_affection
+        "love_and_affection_list": 3.5,
+        "deep_stuff_list": 1.8,
+        "empathy_words_list": 1.2,
+
+
+        # vegan
+        "vegan_list": 12,
+
+
+        # family_member
+        "family_member_list": 6,
+
+    }
+    categories = {
+        "activities_together": {"plans_together_list": coefs["plans_together_list"], "calls_together_list": coefs["calls_together_list"], "groups_together": coefs["groups_together"]},
+        "love_and_affection": {"love_and_affection_list": coefs["love_and_affection_list"], "empathy_words_list": coefs["empathy_words_list"], "deep_stuff_list": coefs["deep_stuff_list"]},
+        "vegan": {"vegan_list": coefs["vegan_list"]},
+        "flatmates": {"flatmates_list": coefs["flatmates_list"]},
+        "in_class_together": {"in_class_together_list": coefs["in_class_together_list"]},
+        "informal": {"use_of_tutoiement_list": coefs["use_of_tutoiement_list"], "informal_speech_list": coefs["informal_speech_list"], "smiley_faces_list": coefs["smiley_faces_list"], "sms_language_list": coefs["sms_language_list"], "vulgar_speech_list": coefs["vulgar_speech_list"], "friends_list": coefs["friends_list"]},
+        "family_member": {"family_member_list": coefs["family_member_list"]}
+    }
+
+    for category in categories:
+        proportion = 0
+        small_dict_of_lists = categories[category]
+        for listing in small_dict_of_lists:
+            coef = small_dict_of_lists[listing]
+            if listing == "groups_together":
+                proportion += coef*dict_results[listing]
+            else:
+                proportion += coef*dict_results[listing]/total_nb_of_messages *1000
+        #result_percentages[category] = float("%.2f"%proportion)
+        result_percentages[category] = int(proportion)
+
+
+
+    for key in result_percentages:
+        result_percentages[key] = 95 if result_percentages[key] >= 95 else result_percentages[key]
+        result_percentages[key] = 5 if result_percentages[key] <= 5 else result_percentages[key]
+
+
+
+    #float("%.2f"%(dict_results[key] * 100 / total_count))
+
+    for key, value in sorted(result_percentages.items(), key=lambda x: x[1], reverse=True):
+        print("%s\t%%\t\t\t\t%s" % (value, key))
+
+
+
+    return result_percentages
+
+
+
+
+
+
+#inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+#palmares_of_people_in_groups_with_you(inbox_path)
+
 
 
 
@@ -237,10 +419,12 @@ vegan_list = [
 "végan",
 "végé",
 "végétarien",
+"vegan",
 "viande",
 "tofu",
-"vegan",
-"seitan"
+"seitan",
+"soja",
+"levure maltée"
 ]
 
 global in_class_together_list
@@ -305,7 +489,7 @@ student_list = [
 #1
 global use_of_tutoiement_list
 use_of_tutoiement_list = [
-"t'es",
+"t'",
 "toi",
 "tu",
 "ton"
@@ -363,7 +547,9 @@ smiley_faces_list = [
 ":p",
 ":3",
 "=)",
-"=D"
+"=D",
+"<3",
+":*"
 ]
 
 #4
@@ -397,7 +583,7 @@ friends_list = [
 "putain",
 "merde",
 "fuck",
-'contente',
+'content',
 'ohhh',
 'sorry',
 'promis'
@@ -428,7 +614,6 @@ calls_together_list = [
 "skype",
 "appel vidéo",
 "discord",
-"sms",
 "whatsapp"
 ]
 
@@ -567,9 +752,7 @@ love_and_affection_list = [
 "t'es drôle",
 "tu me faire rire"
 "toi et moi",
-"bébé",
-"<3",
-":*"
+"bébé"
 ]
 
 
