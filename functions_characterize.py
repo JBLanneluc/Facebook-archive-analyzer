@@ -1,5 +1,5 @@
 import json
-from main import *
+from functions_main import *
 
 def extract_characterizing_categories(clean_text):
 

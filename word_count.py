@@ -1,13 +1,12 @@
 from functions_word_count import *
 from functions_characterize import *
-from main import *
+from functions_main import *
 
 #AurelieGalea_bE7hp1v_Dg
 #RedaDiouri_mhrkjg0Ipg
 #PaulineSch_jGhV8u0dVA
 #MarjolaineVrs_EHqk8KdqeA
-#CedricBay_XjPXsuUgjA
-#Cédric Bay
+#CedricBay_XjPXsuUgjAs
 #JeanBaptisteLanneluc_NnhjkMmx-A
 #NoemieHennequin_bNjUhVHR0A
 #MeghanedeAraujo_Ajq-7uQmQA
@@ -17,12 +16,12 @@ from main import *
 
 
 """
-Gens à tester :
-Réda
-Cédric
+Gens a tester :
+Reda
+Cedric
 Charlotte
 Pauline
-Aurélie
+Aurelie
 JB
 Corentin
 
@@ -32,16 +31,16 @@ person_to_analyse = "Aurélie Galea"
 
 def conversation_analyser(person_name):
 
-    inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+    #inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+    inbox_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
     name_matching_dict = group_file_list(inbox_path)[2]
     #dir_path = inbox_path + name_matching_dict[person_name]
-    dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\AurelieGalea_bE7hp1v_Dg"
+    dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/aureliegalea_be7hp1v_dg"
     parsed = discussion_parser(dir_path)
     sent = parsed[0] # 1 = lui, 0 = toi
     received = parsed[1] # 1 = lui, 0 = toi
     total_nb_of_messages = get_total_number_of_messages(df_sent, df_received)[person_name]
     #print(total_nb_of_messages)
-
     #conversation_dict = {"sent": sent, "received": received}
 
 
@@ -50,11 +49,10 @@ def conversation_analyser(person_name):
 
     text_to_analyse = sent + received
 
-    print("\n\n\n\n\n\n\n\n")
+    print("\n")
     print("____________________________________________________________________________________________________________________________")
     print(person_name)
-    print("____________________________________________________________________________________________________________________________")
-    print("\n\n")
+    print("____________________________________________________________________________________________________________________________\n")
 
     #text_to_analyse = conversation_dict[key]
 
@@ -63,7 +61,7 @@ def conversation_analyser(person_name):
     """
     [https, https_counter] = internet_address_extractor(text_to_analyse)
 
-    print("\n\n\n____________________________________________________________________________________________________________________________")
+    print("____________________________________________________________________________________________________________________________")
     print("Most shared internet addresses")
     print("____________________________________________________________________________________________________________________________\n")
     for address in https_counter:
@@ -72,7 +70,7 @@ def conversation_analyser(person_name):
 
 
     numbers = phone_number_extractor(text_to_analyse, https)
-    print("\n\n\n____________________________________________________________________________________________________________________________")
+    print("____________________________________________________________________________________________________________________________")
     print("Shared phone numbers")
     print("____________________________________________________________________________________________________________________________\n")
     for number in numbers:
@@ -102,7 +100,7 @@ def conversation_analyser(person_name):
     """
 
     #estimated_degree_of_friendship = characterize_with_weights(characterize)
-    print("\n\n\n____________________________________________________________________________________________________________________________")
+    print("____________________________________________________________________________________________________________________________")
     print("Characterizing percentages")
     print("____________________________________________________________________________________________________________________________\n")
     percentages_characterizing = characterize_with_percentages_for_each_category(characterize, person_name)
@@ -115,7 +113,7 @@ def conversation_analyser(person_name):
 
     words_list = word_count(words_list)
 
-    print("\n\n\n____________________________________________________________________________________________________________________________")
+    print("____________________________________________________________________________________________________________________________")
     print("Most shared other words")
     print("____________________________________________________________________________________________________________________________\n")
     for word in words_list:
@@ -125,8 +123,7 @@ def conversation_analyser(person_name):
     """
     """
 
-
-conversation_analyser(person_to_analyse)
+#conversation_analyser(person_to_analyse)
 
 
 
