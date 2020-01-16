@@ -354,9 +354,18 @@ def characterize_with_percentages_for_each_category(dict_results, person_name):
 
 
     #float("%.2f"%(dict_results[key] * 100 / total_count))
+    dict_to_print = {
+        "activities_together": "de chances que vous ayez fait des activités ensemble.\n",
+        "love_and_affection": "de chances que vous exprimiez de l'affection dans vos conversation.\n",
+        "vegan": "de chances qu'au moins l'un des participants de la conversation soi végétarien ou végan.\n",
+        "flatmates": "de chances que vous ayez vécu en colocation.\n",
+        "in_class_together": "de chances que vous soyez ou ayez été en cours ensemble.\n",
+        "informal": "de chances que vous ayez une relation informelle.\n",
+        "family_member": "de chances que vous fassiez partie de la même famille.\n"
+    }
 
     for key, value in sorted(result_percentages.items(), key=lambda x: x[1], reverse=True):
-        print("%s\t%%\t\t\t\t%s" % (value, key))
+        print("%s %%\t\t%s" % (value, dict_to_print[key]))
 
 
 

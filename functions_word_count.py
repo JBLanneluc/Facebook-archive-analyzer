@@ -17,7 +17,7 @@ def internet_address_extractor(message):
             while message[k+c] != " ":
                 c += 1
             https.append(message[k:k+c])
-        if k+3 < len(message):
+        if k+3 >= len(message):
             break
             #clean_message.replace(message[k:k+c], " ")
 
@@ -77,10 +77,7 @@ def phone_number_extractor(message, https):
                 else:
                     break
 
-                if nb == '+33627848766':
-                    print("k = %s"%k)
-                    print("c = %s"%c)
-                    print("len = %s"%len(message))
+
 
 
                 if len(nb) == 10 and nb[0] == "0" and nb[1] != "0":
