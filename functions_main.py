@@ -2,6 +2,7 @@
 import datetime
 from path import Path
 import os
+import platform
 import json
 import time
 import pandas as pd
@@ -10,12 +11,34 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style("darkgrid")
 
-dir_path = input()
-print("\nChargement des données en cours")
-dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+#dir_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
 #dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
 
 ## Fonctions
+
+def path_finder():
+    dir_path = input()
+    print("\nChargement des données en cours")
+    slash = OS_value("\\", '/')
+    local_path = OS_value('messages\\inbox\\','messages/inbox/')
+
+    if dir_path[-1] == slash:
+        dir_path = dir_path + local_path
+    else:
+        dir_path = dir_path + slash + local_path
+    return(dir_path)
+
+
+def OS_value(windows_value, linux_value):
+    if platform.system() == 'Linux':
+        return linux_value
+    if platform.system() == 'Windows':
+        return windows_value
+    if platform.system() == 'Darwin':
+        return linux_value
+    else :
+        return 'Erreur OS'
+
 
 #Renvoit 2 listes pour une discussion precise : celle des messages recus et celle des messages envoyes avec l'expéditeur
 def file_parser(file_path):
@@ -374,7 +397,7 @@ def display_graph_pyplot4(df):
     fig.text(0.5, 0.02, 'Jour de la semaine', ha='center', fontsize=15)
     plt.show()
 
-
+dir_path = path_finder()
 messages_sent, messages_received, dir_dictionary = all_directories_timestamp_messages_parser(dir_path)
 del dir_dictionary['Loïc Garnier']
 
