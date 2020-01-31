@@ -41,10 +41,10 @@ def OS_value(windows_value, linux_value):
 
 
 #Renvoit 2 listes pour une discussion precise : celle des messages recus et celle des messages envoyes avec l'expéditeur
-def file_parser(file_path):
+def file_parser(file_path, username, raw_username):
     with open(file_path) as json_data:
         data = json.load(json_data)
-    user1 = "LoÃ¯c Garnier"
+    user1 = raw_username
     user2 = ""
     for name in data['participants']:
         if name['name'] != user1:
@@ -52,9 +52,9 @@ def file_parser(file_path):
     messages_received = []
     messages_sent = []
     for k in data["messages"]:
-        if (k["sender_name"] != "LoÃ¯c Garnier" and 'content' in k):
+        if (k["sender_name"] != raw_username and 'content' in k):
             messages_received.append([k['timestamp_ms'],k['content'],k['sender_name'], user1])
-        if (k["sender_name"] == "LoÃ¯c Garnier" and 'content' in k):
+        if (k["sender_name"] == raw_username and 'content' in k):
             messages_sent.append([k['timestamp_ms'],k['content'],k['sender_name'], user2])
     return [messages_sent, messages_received]
 
@@ -71,6 +71,8 @@ def group_file_list(dir_path):
     dir_dictionary = {}
     duo_list = []
     group_list = []
+    username = ""
+    raw_username = ""
     for dir in dirs_list:
         for file in message_files_list(dir_path + dir):
             with open(file) as json_data:
@@ -81,8 +83,10 @@ def group_file_list(dir_path):
             elif participants_number == 2:
                 duo_list.append(file)
                 name = (data["participants"][0]["name"]).encode('latin1').decode('utf-8-sig')
+                username = (data["participants"][1]["name"]).encode('latin1').decode('utf-8-sig')
+                raw_username = data["participants"][1]["name"]
                 dir_dictionary[name] = dir
-    return duo_list, group_list, dir_dictionary
+    return duo_list, group_list, dir_dictionary, username, raw_username
 
 def number_of_messages(name):
     number = 0
@@ -107,12 +111,12 @@ def extract_timestamp(messages_list):
 def all_directories_timestamp_messages_parser(dir_path):
     sent_timestamp_list = []
     received_timestamp_list = []
-    file_list, _, dir_dictionary = group_file_list(dir_path)
+    file_list, _, dir_dictionary, username, raw_username = group_file_list(dir_path)
     for file in file_list:
-        file_sent, file_received = file_parser(file)
+        file_sent, file_received = file_parser(file, username, raw_username)
         sent_timestamp_list = sent_timestamp_list + file_sent   #Juste une liste des timestamps des messages envoyés
         received_timestamp_list = received_timestamp_list + file_received #Liste des timestamps des messages reçus et de l'expéditeur : [[timestamp1, expéditeur1], [timestamp2, expéditeur2]]...
-    return sent_timestamp_list, received_timestamp_list, dir_dictionary
+    return sent_timestamp_list, received_timestamp_list, dir_dictionary, username, raw_username
 
 
 
@@ -398,7 +402,7 @@ def display_graph_pyplot4(df):
     plt.show()
 
 dir_path = path_finder()
-messages_sent, messages_received, dir_dictionary = all_directories_timestamp_messages_parser(dir_path)
-
+messages_sent, messages_received, dir_dictionary, username, raw_username = all_directories_timestamp_messages_parser(dir_path)
+print(username)
 df_sent = normalize_dataframe(messages_sent)
 df_received = normalize_dataframe(messages_received)

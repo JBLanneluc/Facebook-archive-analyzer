@@ -16,6 +16,8 @@ def internet_address_extractor(message):
             c = 0
             while message[k+c] != " ":
                 c += 1
+                if (k+c) >= len(message):
+                    break
             https.append(message[k:k+c])
         if k+3 >= len(message):
             break
