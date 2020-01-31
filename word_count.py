@@ -30,13 +30,13 @@ Corentin
 #person_to_analyse = "Aurélie Galea"
 
 def conversation_analyser(person_name):
-
-    inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
+    inbox_path = dir_path
+    #inbox_path = "C:\\Users\\loicg\\Desktop\\facebook-loicgarnier104\\messages\\inbox\\"
     #inbox_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/"
     name_matching_dict = group_file_list(inbox_path)[2]
-    dir_path = inbox_path + name_matching_dict[person_name]
+    user_dir_path = inbox_path + name_matching_dict[person_name]
     #dir_path = "/home/jean-baptiste/Travail/5A/Projet/facebook-loicgarnier104/messages/inbox/aureliegalea_be7hp1v_dg"
-    parsed = discussion_parser(dir_path)
+    parsed = discussion_parser(user_dir_path)
     sent = parsed[0] # 1 = lui, 0 = toi
     received = parsed[1] # 1 = lui, 0 = toi
     total_nb_of_messages = get_total_number_of_messages(df_sent, df_received)[person_name]

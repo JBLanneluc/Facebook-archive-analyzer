@@ -399,7 +399,6 @@ def display_graph_pyplot4(df):
 
 dir_path = path_finder()
 messages_sent, messages_received, dir_dictionary = all_directories_timestamp_messages_parser(dir_path)
-del dir_dictionary['Loïc Garnier']
 
 df_sent = normalize_dataframe(messages_sent)
 df_received = normalize_dataframe(messages_received)
