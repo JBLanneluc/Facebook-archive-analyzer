@@ -1,19 +1,34 @@
-#ASCII Intro :
+# ASCII Intro :
 import os
+
 print("---------------------------------------------------")
-ASCII = " ______      _____ ______ ____   ____   ____  _  __\n|  ____/\\   / ____|  ____|  _ \\ / __ \\ / __ \\| |/ /\n| |__ /  \\ | |    | |__  | |_) | |  | | |  | | ' /\n|  __/ /\\ \\| |    |  __| |  _ <| |  | | |  | |  <\n| | / ____ \\ |____| |____| |_) | |__| | |__| | . \\\n|_|/_/    \\_\\_____|______|____/ \\____/ \\____/|_|\\_\\\n\n\n __  __ ______  _____ _____ ______ _   _  _____ ______ _____\n|  \\/  |  ____|/ ____/ ____|  ____| \\ | |/ ____|  ____|  __ \\\n| \\  / | |__  | (___| (___ | |__  |  \\| | |  __| |__  | |__) |\n| |\\/| |  __|  \\___ \\\\___ \\|  __| | . ` | | |_ |  __| |  _  /\n| |  | | |____ ____) |___) | |____| |\\  | |__| | |____| | \\ \\\n|_|  |_|______|_____/_____/|______|_| \\_|\\_____|______|_|  \\_\\\n\n\n          _   _          _  __     ______________ _____\n    /\\   | \\ | |   /\\   | | \\ \\   / /___  /  ____|  __ \\\n   /  \\  |  \\| |  /  \\  | |  \\ \\_/ /   / /| |__  | |__) |\n  / /\\ \\ | . ` | / /\\ \\ | |   \\   /   / / |  __| |  _  /\n / ____ \\| |\\  |/ ____ \\| |____| |   / /__| |____| | \\ \\\n/_/    \\_\\_| \\_/_/    \\_\\______|_|  /_____|______|_|  \\_\\\n"
+ASCII = "______      _____ ______ ____   ____   ____  _  __\n|  ____/\\   / ____|  ____|  _ \\ / __ \\ / __ \\| |/ " \
+        "/\n| |__ /  \\ | |    | |__  | |_) | |  | | |  | | ' /\n|  __/ /\\ \\| |    |  __| |  _ <| |  | | |  | |  " \
+        "<\n| | / ____ \\ |____| |____| |_) | |__| | |__| | . \\\n|_|/_/    \\_\\_____|______|____/ \\____/ " \
+        "\\____/|_|\\_\\\n\n\n __  __ ______  _____ _____ ______ _   _  _____ ______ _____\n|  \\/  |  ____|/ ____/ " \
+        "____|  ____| \\ | |/ ____|  ____|  __ \\\n| \\  / | |__  | (___| (___ | |__  |  \\| | |  __| |__  | |__) " \
+        "|\n| |\\/| |  __|  \\___ \\\\___ \\|  __| | . ` | | |_ |  __| |  _  /\n| |  | | |____ ____) |___) | |____| " \
+        "|\\  | |__| | |____| | \\ \\\n|_|  |_|______|_____/_____/|______|_| \\_|\\_____|______|_|  \\_\\\n\n\n       " \
+        "   _   _          _  __     ______________ _____\n    /\\   | \\ | |   /\\   | | \\ \\   / /___  /  ____|  " \
+        "__ \\\n   /  \\  |  \\| |  /  \\  | |  \\ \\_/ /   / /| |__  | |__) |\n  / /\\ \\ | . ` | / /\\ \\ | |   \\  " \
+        " /   / / |  __| |  _  /\n / ____ \\| |\\  |/ ____ \\| |____| |   / /__| |____| | \\ \\\n/_/    \\_\\_| " \
+        "\\_/_/    \\_\\______|_|  /_____|______|_|  \\_\\\n "
 
 print(ASCII)
 print("---------------------------------------------------\n")
-print("Bienvenue sur notre programme d'analyse messenger. \nNous allons analyser votre archive facebook et en extraire des statistiques à titre informatif. \nSoyez rassuré, ces statistiques ne seront visibles que par vous-même, et en aucun cas elles ne seront envoyées ou stockées ailleurs.")
-#print("\nEntrez le chemin vers votre archive décompressée :")
+print("Bienvenue sur notre programme d'analyse messenger. \nNous allons analyser votre archive facebook et en "
+      "extraire des statistiques à titre informatif. \nSoyez rassuré, ces statistiques ne seront visibles que par "
+      "vous-même, et en aucun cas elles ne seront envoyées ou stockées ailleurs.")
+# print("\nEntrez le chemin vers votre archive décompressée :")
 print("\nEntrez le chemin du dossier racine de votre archive décompressée")
 
 from functions_main import *
 from word_count import *
 from functions_word_count import *
 from functions_characterize import *
+
 clear = OS_value('cls', 'clear')
+
 
 def display_dates_menu():
     os.system(clear)
@@ -23,6 +38,7 @@ def display_dates_menu():
     print("Date de fin :")
     end_date = input()
     return select_data_between_dates(begin_date, end_date, df_sent)
+
 
 def display_graph_menu():
     df_temp = df_sent.copy()
@@ -56,15 +72,16 @@ def display_graph_menu():
             local_quit = 1
             os.system(clear)
 
-        else :
+        else:
             print("Sélection incorrecte")
 
+
 def display_analyzer_menu():
-    users_list = palmares(df_sent,df_received)
+    users_list = palmares(df_sent, df_received)
     os.system(clear)
     print("Entrez le nom d'une personne\nAttention à bien entrer le même nom que sur facebook :")
     ok = -1
-    while ok == -1 :
+    while ok == -1:
         username = input()
         if username == 'Retour':
             return
@@ -78,9 +95,6 @@ def display_analyzer_menu():
     input()
 
 
-
-
-
 def display_palmares_menu():
     os.system(clear)
     print("Combien de personnes souhaitez-vous afficher ?")
@@ -89,16 +103,17 @@ def display_palmares_menu():
     while ok == -1:
         ok = 0
         try:
-           n = int(input())
+            n = int(input())
         except ValueError:
-           print("Ce n'est pas un entier")
-           ok = -1
+            print("Ce n'est pas un entier")
+            ok = -1
 
     print('\n')
     top = palmares(df_sent, df_received, n)
-    print("\nSouhaitez-vous estimer vos relations avec l'une des personnes ci-dessus ?\nRépondez par 'oui' ou par 'non':")
+    print(
+        "\nSouhaitez-vous estimer vos relations avec l'une des personnes ci-dessus ?\nRépondez par 'oui' ou par 'non':")
     ok = -1
-    while ok == -1 :
+    while ok == -1:
         ok = 1
         choice = input()
         if choice == "non":
@@ -112,18 +127,16 @@ def display_palmares_menu():
     while ok == -1:
         ok = 0
         try:
-           choice = int(input())
-           if choice >= n:
-               print("numéro incorrect, réessayez :")
-               ok = -1
+            choice = int(input())
+            if choice >= n:
+                print("numéro incorrect, réessayez :")
+                ok = -1
         except ValueError:
-           print("Ce n'est pas un entier, réessayez :")
-           ok = -1
+            print("Ce n'est pas un entier, réessayez :")
+            ok = -1
     conversation_analyser(top.iloc[choice]['Nom'])
     print("Appuyez sur entrée pour revenir au menu précédent")
     input()
-
-
 
 
 def display_relations_menu():
@@ -147,13 +160,9 @@ def display_relations_menu():
             os.system(clear)
 
 
-
-
-
-
 print("\nDonnées chargées avec succès")
 quit = 0
-while quit == 0 :
+while quit == 0:
     print("Quelle opération souhaitez-vous réaliser ?")
     print("1. Afficher des graphiques de votre utilisation de messenger")
     print("2. Afficher vos affinités avec une personne")
@@ -167,10 +176,9 @@ while quit == 0 :
     elif selection == "3":
         print("À bientôt")
         quit = 1
-    else :
+    else:
         print("Sélection incorrecte")
 
-
-#print(df_sent)
-#print(df_received)
-#palmares = palmares(df_sent, df_received, 20)
+# print(df_sent)
+# print(df_received)
+# palmares = palmares(df_sent, df_received, 20)
