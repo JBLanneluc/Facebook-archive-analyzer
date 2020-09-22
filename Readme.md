@@ -6,7 +6,7 @@ This application has 2 purposes:
 - Characterizing the nature of your relationships based on your messages exchanges, (it only works for French discussions though).
 Of course, nothing is sent, everything is local and stays on your computer.
 
-## Example of use
+## Use example
 First, you have to download your Facebook archive (json) containing all your data from Facebook. The only thing you need is the messages, so you can uncheck the rest of your data.
 You can get yours [here](https://www.facebook.com/dyi/?referrer=yfi_settings)  
 
